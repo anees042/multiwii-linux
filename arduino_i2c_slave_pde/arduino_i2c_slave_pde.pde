@@ -15,6 +15,7 @@ int cmd;
 */
 void onRecieveHandler(int numBytes)
 {
+  digitalWrite(led, HIGH);
   /* eat all the bytes, just for demo purposes, we don't use them*/
   for (int i = 0; i < numBytes && i < BUFFER_SIZE; i++) {
     i2c_buffer[i] = Wire.receive();
@@ -31,6 +32,7 @@ void onRecieveHandler(int numBytes)
 */
 void onRequestHandler()
 {
+  digitalWrite(led, HIGH);
   if (cmd == 0x01) {
     i2c_buffer[0] = 0x1e;
     i2c_buffer[1] = 0x55;
@@ -56,9 +58,11 @@ void begin_i2c()
 
 void setup()
 {
+  pinMode(13, OUTPUT);
   begin_i2c();  
 }
 
 void loop()
 {
+  digitalWrite(led, LOW);
 }

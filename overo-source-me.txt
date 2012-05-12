@@ -21,3 +21,4 @@ export CC="arm-angstrom-linux-gnueabi-gcc"
 export LD="arm-angstrom-linux-gnueabi-ld"
 export STRIP="arm-angstrom-linux-gnueabi-strip"
 
+export PATHMODINSTALL =/exports/overo/home/root

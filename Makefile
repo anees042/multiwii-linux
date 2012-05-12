@@ -17,7 +17,7 @@ endif
 
 
 install:
-	sudo cp mi2c.ko /exports/overo/home/root
+	cp mi2c.ko $(PATHMODINSTALL)
 
 clean:
 	rm -rf *~ *.ko *.o *.mod.c modules.order Module.symvers .${DRIVERNAME}* .tmp_versions
