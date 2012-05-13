@@ -62,28 +62,29 @@ static int itg3200_read_gyro(int16_t *temp, int16_t *gx, int16_t *gy, int16_t *g
 	int result;
 	int8_t data[8];
 
-
 	result = mi2c_i2c_reads(ITG3200_I2C, 8,data);
 
 	if (result != 8)
 		return -1;
 
 	*temp = data[1]& 0xff;
-	*temp = data[0] << 8;
+	*temp = *temp + (data[0] << 8);
 	*temp = *temp+13200;
-	*temp = *temp / 280;
-	*temp = *temp   +35;
+	*temp = *temp /28;
+	*temp = *temp +350;
+
+
 
 	//*temp= 35.0 + ((float) ( ((data[1] & 0xff )+ (data[0] << 8 )) + 13200)) / 280;
 
 	*gx = data[3]& 0xff;
-	*gx = data[2] << 8;
+	*gx = *gx+(data[2] << 8);
 	*gx = *gx /4;
 	*gy = data[5]& 0xff;
-	*gy = data[4] << 8;
+	*gy = *gy +(data[4] << 8);
 	*gy = *gy /4;
 	*gz = data[7]& 0xff;
-	*gz = data[6] << 8;
+	*gz = *gz+(data[6] << 8);
 	*gz = *gz /4;
 	return result;
 }
