@@ -11,9 +11,21 @@
 #ifndef BGSENSORS_H
 #define BGSENSORS_H
 
-#define ITG3200_I2C 0
-#define ARDUINO_I2C 1
 
+/*
+ *  Arduino Motor/Servo slave
+ */
+#define ARDUINO 		1
+#define ARDUINO_ADDRESS	0x10
+
+
+
+
+/*
+ * Gyro ITG3200
+ */
+#define ITG3200 		0
+#define ITG3200_ADDRESS	0x69
 
 
 //ITG3200 and ITG3205 Gyro LPF setting
@@ -57,5 +69,14 @@
 #define ITG3200_REG_GYRO_YOUT_L			0x20
 #define ITG3200_REG_GYRO_ZOUT_H			0x21
 #define ITG3200_REG_GYRO_ZOUT_L			0x22
+
+#define ITG3200_REG_POWER_MGMT			0x3E
+#define ITG3200_REG_SAMPLE_RATE_DIV		0x15
+
+#define ITG3200_REG_LP_FULL_SCALE		0x16
+
+#define ITG3200_REG_IRQ					0x17
+
+#define ITG3200_REG_IRQ_STATUS			0x1A
 
 #endif

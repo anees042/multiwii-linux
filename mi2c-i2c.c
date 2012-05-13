@@ -111,8 +111,8 @@ mi2c_i2c_remove(struct i2c_client *client) {
 
 /* i2 devices used by the driver   */
 static const struct i2c_device_id mi2c_id[] = {
-		{ ITG3200_DEVICE, 0 },
-		{ARDUINO_DEVICE, 0 },
+		{ITG3200_NAME, 0 },
+		{ARDUINO_NAME, 0 },
 		{ }, };
 
 MODULE_DEVICE_TABLE( i2c, mi2c_id);
