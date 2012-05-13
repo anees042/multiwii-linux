@@ -11,29 +11,17 @@
 #include <linux/device.h>
 #include <linux/i2c.h>
 #include <linux/module.h>
-#include <linux/delay.h>
 
-#include "mi2c.h" /* for DRIVER_NAME */
+#include "mi2c.h"
 
-#define ARDUINO_DEVICE	"arduino"
-#define ARDUINO_ADDRESS		0x10
 
-#define ITG3200_DEVICE	"itg3200"
-#define ITG3200_ADDRESS		0x69
+static int  num_devices;
 
-#define NUM_DEVICES		1
+static struct i2c_client *mi2c_i2c_client[MAX_MI2C_DEVICES];
 
-static struct i2c_client *mi2c_i2c_client[NUM_DEVICES];
-
-static struct i2c_board_info mi2c_board_info[NUM_DEVICES] = {
-
-		{ I2C_BOARD_INFO(ITG3200_DEVICE, ITG3200_ADDRESS), }
-		//,
-		//{ I2C_BOARD_INFO(ARDUINO_DEVICE, ARDUINO_ADDRESS), }
-};
 
 int mi2c_i2c_get_address(unsigned int device_id) {
-	if (device_id >= NUM_DEVICES)
+	if (device_id >= num_devices)
 		return -EINVAL;
 
 	if (!mi2c_i2c_client[device_id])
@@ -43,7 +31,7 @@ int mi2c_i2c_get_address(unsigned int device_id) {
 }
 
 int mi2c_i2c_write(unsigned int device_id, unsigned char *buf, int count) {
-	if (device_id >= NUM_DEVICES)
+	if (device_id >= num_devices)
 		return -EINVAL;
 
 	if (!mi2c_i2c_client[device_id])
@@ -60,14 +48,13 @@ int mi2c_i2c_write_reg(unsigned int device_id, unsigned char reg,
 	i = mi2c_i2c_write(device_id, cmd, 1);
 	cmd[0] = val;
 	i += mi2c_i2c_write(device_id, cmd, 1);
-
+	if (i !=2 )
+				dev_err(&(mi2c_i2c_client[device_id]->dev), "I2C WRITE error\n");
 	return i == 2;
 }
 
-
-
 int mi2c_i2c_read(unsigned int device_id, unsigned char *buf, int count) {
-	if (device_id >= NUM_DEVICES)
+	if (device_id >= num_devices)
 		return -EINVAL;
 
 	if (!mi2c_i2c_client[device_id])
@@ -83,8 +70,22 @@ int mi2c_i2c_read_reg(unsigned int device_id, unsigned char reg,
 	cmd[0] = reg;
 	i = mi2c_i2c_write(device_id, cmd, 1);
 	i += mi2c_i2c_read(device_id, val, 1);
-
+	if (i !=2 )
+			dev_err(&(mi2c_i2c_client[device_id]->dev), "I2C READ error\n");
 	return i == 2;
+}
+
+int mi2c_i2c_reads(unsigned int device_id,int reg,int count, int8_t *data)
+{
+
+	int r=0;
+
+	r = i2c_smbus_read_i2c_block_data(mi2c_i2c_client[device_id],
+			reg,count, data);
+	if (r != count)
+		dev_err(&(mi2c_i2c_client[device_id]->dev), "I2C READ error\n");
+	return r;
+
 }
 
 static int __init
@@ -102,44 +103,13 @@ mi2c_i2c_remove(struct i2c_client *client) {
 	return 0;
 }
 
-static int itg3200_init(void) {
-
-
-	udelay(100);
-
-	mi2c_i2c_write_reg(ITG3200_I2C, 0x3E, 0x80); //register: Power Management  --  value: reset device
-	udelay(5);
-	mi2c_i2c_write_reg(ITG3200_ADDRESS, 0x15, ITG3200_SMPLRT_DIV); //register: Sample Rate Divider  -- default value = 0: OK
-	udelay(5);
-	mi2c_i2c_write_reg(ITG3200_I2C, 0x16, 0x18 + ITG3200_DLPF_CFG); //register: DLPF_CFG - low pass filter configuration
-	udelay(5);
-	mi2c_i2c_write_reg(ITG3200_I2C, 0x3E, 0x03); //register: Power Management  --  value: PLL with Z Gyro reference
-	udelay(100);
-
-	return 0;
-}
-
-int mi2c_i2c_reads(unsigned int device_id,int8_t count, int8_t *data)
-
-{
-
-	int8_t d[1];
-	int r=0;
-
-
-	r = i2c_smbus_read_i2c_block_data(mi2c_i2c_client[device_id],
-			ITG3200_REG_TEMP_OUT_H,count, data);
-	if (r < 0)
-		dev_err(&(mi2c_i2c_client[device_id]->dev), "I2C write error\n");
-	return r;
-
-}
 
 /* i2 devices used by the driver   */
 static const struct i2c_device_id mi2c_id[] = {
 		{ ITG3200_DEVICE, 0 },
-		//{ARDUINO_DEVICE, 0 },
+		{ARDUINO_DEVICE, 0 },
 		{ }, };
+
 MODULE_DEVICE_TABLE( i2c, mi2c_id);
 
 static struct i2c_driver mi2c_i2c_driver __refdata = {
@@ -152,16 +122,15 @@ static struct i2c_driver mi2c_i2c_driver __refdata = {
 		.remove = mi2c_i2c_remove,
 };
 
-/* Beagle Bone buses */
-#define I2C_BUS_3	3 //	H9 pin 19 20
-#define I2C_BUS_2	2 //	H9 pin 17 18
 
 // init i2c devices
-int __init mi2c_init_i2c(void)
+int __init mi2c_init_i2c(int numdevices, struct i2c_board_info * board_info )
 {
 	int i, ret;
-
 	struct i2c_adapter *adapter;
+
+
+	num_devices =numdevices;
 
 	/* register our driver */
 	ret = i2c_add_driver(&mi2c_i2c_driver);
@@ -170,7 +139,8 @@ int __init mi2c_init_i2c(void)
 		return ret;
 	}
 
-	/* add our devices */
+
+	/* get bus */
 	adapter = i2c_get_adapter(I2C_BUS_2);
 
 	if (!adapter) {
@@ -178,9 +148,9 @@ int __init mi2c_init_i2c(void)
 		return -1;
 	}
 
-	for (i = 0; i < NUM_DEVICES; i++) {
-		mi2c_i2c_client[i] = i2c_new_device(adapter,
-				&mi2c_board_info[i]);
+	/* add our devices */
+	for (i = 0; i < num_devices; i++) {
+		mi2c_i2c_client[i] = i2c_new_device(adapter,&board_info[i]);
 
 		if (!mi2c_i2c_client[i]) {
 			printk(KERN_ALERT "i2c_new_device failed\n");
@@ -191,15 +161,15 @@ int __init mi2c_init_i2c(void)
 	}
 
 	i2c_put_adapter(adapter);
-	itg3200_init();
-	return i == NUM_DEVICES ? 0 : -1;
+
+	return i == num_devices ? 0 : -1;
 }
 
 void __exit mi2c_cleanup_i2c(void)
 {
 	int i;
 
-	for (i = 0; i < NUM_DEVICES; i++) {
+	for (i = 0; i < num_devices; i++) {
 		if (mi2c_i2c_client[i]) {
 			i2c_unregister_device(mi2c_i2c_client[i]);
 			mi2c_i2c_client[i] = NULL;

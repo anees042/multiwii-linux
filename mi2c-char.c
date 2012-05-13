@@ -11,11 +11,27 @@
 #include <linux/kernel.h>
 #include <linux/device.h>
 #include <linux/slab.h>
+#include <linux/delay.h>
+#include <linux/i2c.h>
 
 #include "mi2c.h"
 #include "mi2c-i2c.h"
 
+#include "sensors.h"
+
 #define USER_BUFF_SIZE 128
+
+
+
+#define NUM_DEVICES 2
+
+
+struct i2c_board_info mi2c_board_info[NUM_DEVICES] = {
+
+		{ I2C_BOARD_INFO(ITG3200_DEVICE, ITG3200_ADDRESS), }
+		,
+		{ I2C_BOARD_INFO(ARDUINO_DEVICE, ARDUINO_ADDRESS), }
+};
 
 struct mi2c_dev {
 	dev_t devt;
@@ -26,6 +42,7 @@ struct mi2c_dev {
 };
 
 static struct mi2c_dev mi2c_dev;
+
 
 /* 
  * See the arduino_i2c_slave.pde under the arduino_i2c_slave directory
@@ -38,7 +55,7 @@ static int arduino_run_command(unsigned char cmd, unsigned int *val) {
 
 	buff[0] = cmd;
 
-	/*Arduino device */
+	// send cmd
 	result = mi2c_i2c_write(ARDUINO_I2C, buff, 1);
 
 	if (result != 1)
@@ -47,6 +64,7 @@ static int arduino_run_command(unsigned char cmd, unsigned int *val) {
 	buff[0] = 0;
 	buff[1] = 0;
 
+	// read reply
 	result = mi2c_i2c_read(ARDUINO_I2C, buff, 2);
 
 	if (result != 2)
@@ -57,12 +75,28 @@ static int arduino_run_command(unsigned char cmd, unsigned int *val) {
 	return 0;
 }
 
+static int itg3200_init(void) {
+
+	udelay(100);
+
+	mi2c_i2c_write_reg(ITG3200_I2C, 0x3E, 0x80); //register: Power Management  --  value: reset device
+	udelay(5);
+	mi2c_i2c_write_reg(ITG3200_I2C, 0x15, ITG3200_SMPLRT_DIV); //register: Sample Rate Divider  -- default value = 0: OK
+	udelay(5);
+	mi2c_i2c_write_reg(ITG3200_I2C, 0x16, 0x18 + ITG3200_DLPF_CFG); //register: DLPF_CFG - low pass filter configuration
+	udelay(5);
+	mi2c_i2c_write_reg(ITG3200_I2C, 0x3E, 0x03); //register: Power Management  --  value: PLL with Z Gyro reference
+	udelay(100);
+
+	return 0;
+}
+
 static int itg3200_read_gyro(int16_t *temp, int16_t *gx, int16_t *gy, int16_t *gz) {
 
 	int result;
 	int8_t data[8];
 
-	result = mi2c_i2c_reads(ITG3200_I2C, 8,data);
+	result = mi2c_i2c_reads(ITG3200_I2C,ITG3200_REG_TEMP_OUT_H, 8,data);
 
 	if (result != 8)
 		return -1;
@@ -72,7 +106,6 @@ static int itg3200_read_gyro(int16_t *temp, int16_t *gx, int16_t *gy, int16_t *g
 	*temp = *temp+13200;
 	*temp = *temp /28;
 	*temp = *temp +350;
-
 
 
 	//*temp= 35.0 + ((float) ( ((data[1] & 0xff )+ (data[0] << 8 )) + 13200)) / 280;
@@ -238,8 +271,10 @@ static int __init mi2c_init(void)
 	if (mi2c_init_class() < 0)
 		goto init_fail_2;
 
-	if (mi2c_init_i2c() < 0)
+	if (mi2c_init_i2c(NUM_DEVICES,mi2c_board_info) < 0)
 		goto init_fail_3;
+
+	itg3200_init();
 
 	return 0;
 
