@@ -31,13 +31,49 @@
 
 #define NUM_DEVICES 2
 
-
 struct i2c_board_info mi2c_board_info[NUM_DEVICES] = {
 
-		{ I2C_BOARD_INFO(ITG3200_NAME, ITG3200_ADDRESS), }
-		,
+		{ I2C_BOARD_INFO(ITG3200_NAME, ITG3200_ADDRESS), },
 		{ I2C_BOARD_INFO(ARDUINO_NAME, ARDUINO_ADDRESS), }
+
 };
+
+// TODO enable features ACC,MAG,GYRO,BARO,SONAR based on sensors in i2c_board_info
+//++ merge in
+
+	#if defined(ADXL345) || defined(BMA020) || defined(BMA180) || defined(NUNCHACK) || defined(MMA7455) || defined(ADCACC) || defined(LIS3LV02) || defined(LSM303DLx_ACC) || defined(MPU6050)
+	  #define ACC 1
+	#else
+	  #define ACC 0
+	#endif
+
+	#if defined(HMC5883) || defined(HMC5843) || defined(AK8975) || defined(MAG3110)
+	  #define MAG 1
+	#else
+	  #define MAG 0
+	#endif
+
+	#if defined(ITG3200) || defined(L3G4200D) || defined(MPU6050)
+	  #define GYRO 1
+	#else
+	  #define GYRO 0
+	#endif
+
+	#if defined(BMP085) || defined(MS561101BA)
+	  #define BARO 1
+	#else
+	  #define BARO 0
+	#endif
+
+
+	#if defined(SRF02) || defined(SRF08) || defined(SRF10) || defined(SRC235)
+	  #define SONAR 1
+	#else
+	  #define SONAR 0
+	#endif
+
+//++ merge end
+
 
 struct mi2c_dev {
 	dev_t devt;
@@ -102,7 +138,7 @@ static int itg3200_read_gyro(int16_t *temp, int16_t *gx, int16_t *gy, int16_t *g
 	int result;
 	int8_t data[8];
 
-	result = mi2c_i2c_reads(ITG3200,ITG3200_REG_TEMP_OUT_H, 8,data);
+	result = mi2c_i2c_read_regs(ITG3200,ITG3200_REG_TEMP_OUT_H, 8,data);
 
 	if (result != 8)
 		return -1;

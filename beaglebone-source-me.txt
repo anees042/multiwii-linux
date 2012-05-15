@@ -1,4 +1,0 @@
-
-export PATHMODINSTALL=/lib/modules/`uname -r`/kernel
-
-export KERNELDIR=/usr/src/linux

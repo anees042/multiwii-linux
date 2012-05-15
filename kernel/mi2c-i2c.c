@@ -80,7 +80,7 @@ int mi2c_i2c_read_reg(unsigned int device_id, unsigned char reg,
 	return i == 2;
 }
 
-int mi2c_i2c_reads(unsigned int device_id,int reg,int count, int8_t *data)
+int mi2c_i2c_read_regs(unsigned int device_id,int reg,int count, int8_t *data)
 {
 
 	int r=0;

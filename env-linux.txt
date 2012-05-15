@@ -1,0 +1,4 @@
+
+export MOD_INSTALL_DIR=/lib/modules/`uname -r`/kernel
+
+export KERNELDIR=/usr/src/linux
