@@ -1,4 +1,6 @@
 /*
+ * http://www.kernel.org/doc/Documentation/i2c/writing-clients
+ *
  *  This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -133,33 +135,32 @@ static int itg3200_init(void) {
 	return 0;
 }
 
-static int itg3200_read_gyro(int16_t *temp, int16_t *gx, int16_t *gy, int16_t *gz) {
+static int itg3200_read_gyro( int16_t *gx, int16_t *gy, int16_t *gz) {
 
 	int result;
-	int8_t data[8];
+	int8_t data[6];
 
-	result = mi2c_i2c_read_regs(ITG3200,ITG3200_REG_TEMP_OUT_H, 8,data);
+	result = mi2c_i2c_read_regs(ITG3200,ITG3200_REG_GYRO_XOUT_H, 6,data);
 
-	if (result != 8)
+	if (result != 6)
 		return -1;
 
-	*temp = data[1]& 0xff;
-	*temp = *temp + (data[0] << 8);
-	*temp = *temp+13200;
-	*temp = *temp /28;
-	*temp = *temp +350;
-
+//	*temp = data[1]& 0xff;
+//	*temp = *temp + (data[0] << 8);
+//	*temp = *temp+13200;
+//	*temp = *temp /28;
+//	*temp = *temp +350;
 
 	//*temp= 35.0 + ((float) ( ((data[1] & 0xff )+ (data[0] << 8 )) + 13200)) / 280;
 
-	*gx = data[3]& 0xff;
-	*gx = *gx+(data[2] << 8);
+	*gx = data[1]& 0xff;
+	*gx = *gx+(data[0] << 8);
 	*gx = *gx /4;
-	*gy = data[5]& 0xff;
-	*gy = *gy +(data[4] << 8);
+	*gy = data[3]& 0xff;
+	*gy = *gy +(data[2] << 8);
 	*gy = *gy /4;
-	*gz = data[7]& 0xff;
-	*gz = *gz+(data[6] << 8);
+	*gz = data[5]& 0xff;
+	*gz = *gz+(data[4] << 8);
 	*gz = *gz /4;
 	return result;
 }
@@ -171,21 +172,22 @@ static ssize_t mi2c_read(struct file *filp, char __user *buff,
 	size_t len;
 //	unsigned int addr, val;
 //	unsigned char cmd;
-	int16_t temp,gx,gy, gz;
+	int16_t gx=0,gy=0, gz=0;
 
 	/* 
 	 Generic user progs like cat will continue calling until we
 	 return zero. So if *offp != 0, we know this is at least the
 	 second call.
 	 */
-	//	if (*offp > 0)
-	//		return 0;
+		if (*offp > 0)
+			return 0;
 	if (down_interruptible(&mi2c_dev.sem))
 		return -ERESTARTSYS;
 
 	memset(mi2c_dev.user_buff, 0, USER_BUFF_SIZE);
 	len = 0;
 
+	//TODO Move to _write
 	//	/* Arduino device  */
 	//	addr = mi2c_i2c_get_address(ARDUINO_I2C);
 	//	val = 0;
@@ -198,13 +200,14 @@ static ssize_t mi2c_read(struct file *filp, char __user *buff,
 	//				"Arduino at 0x%02X responded to 0x%02X with 0x%04X\n",
 	//				addr, cmd, val);
 
-	/* read imu*/
-	if (itg3200_read_gyro( &temp,&gx,&gy, &gz ) != 8){
+	/* read gyro*/
+	if (itg3200_read_gyro( &gx,&gy, &gz ) != 6){
 		printk(KERN_ALERT "Read of itg3200 failed\n");
 	}else{
 		len += sprintf(mi2c_dev.user_buff + len,
-				"temp=%i\t gx=%d\t gy=%d\t gz=%d\n",
-				temp,gx,gy,gz);
+				"%02x%02x%02x\n",
+				gx & 0xFF,gy & 0xFF,gz & 0xFF);
+
 	}
 
 
