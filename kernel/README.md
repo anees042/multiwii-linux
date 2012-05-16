@@ -1,4 +1,4 @@
- mi2c kernel module
+ multiwii kernel module
 =======
 
 

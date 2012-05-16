@@ -3,17 +3,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
-
+#include <stdint.h>
 #include "util.h"
 
 //struct timeval startTime;
 struct timespec start;
 struct timespec end;
 
-long int micros() {
+uint64_t  micros() {
 
 	clock_gettime(CLOCK_MONOTONIC, &end);
-	return (end.tv_sec * 1000000L + (end.tv_nsec/1000 )
+	return (end.tv_sec * 1000000ULL + (end.tv_nsec/1000 )
 			- start.tv_sec * 1000000ULL + (start.tv_nsec/1000 ));
 
 }
@@ -43,6 +43,7 @@ void signal_callback_int(int signum) {
 
 int main(void) {
 
+	int8_t state=0;
 	// Register sigint callback
 	signal(SIGINT, signal_callback_int);
 
@@ -50,11 +51,19 @@ int main(void) {
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
 	printf("Setup\n");
-	setup();
-	printf("\nok\nGo\n");
+	state = setup();
+	switch (state) {
+		case FAILURE_IMU_INIT:
+			printf("Failed to start imu , aborting ..\n");
+			return EXIT_FAILURE;
+			break;
+		default:
+			printf("\nok\nGo\n");
 
-	while (1)
-		loop();
+				while (1) loop();
+			break;
+	}
+
 
 	return EXIT_SUCCESS;
 }

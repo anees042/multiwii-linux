@@ -8,51 +8,31 @@
  *
  */
 
-/*****************************    Motor minthrottle    *******************************/
-/* Set the minimum throttle command sent to the ESC (Electronic Speed Controller)
-   This is the minimum value that allow motors to run at a idle speed  */
+#ifndef MWI_CONFIG_H
+#define MWI_CONFIG_H
+
+
+
+/* Motor minthrottle
+ *
+ * Set the minimum throttle command sent to the ESC (Electronic Speed Controller)
+ * This is the minimum value that allow motors to run at a idle speed  */
 //#define MINTHROTTLE 1300 // for Turnigy Plush ESCs 10A
 //#define MINTHROTTLE 1120 // for Super Simple ESCs 10A
 //#define MINTHROTTLE 1220
 #define MINTHROTTLE 1150 
 
 
-/**************************    The type of multicopter    ****************************/
-//#define GIMBAL
-//#define BI
-//#define TRI
-//#define QUADP
-#define QUADX
-//#define Y4
-//#define Y6
-//#define HEX6
-//#define HEX6X
-//#define OCTOX8
-//#define OCTOFLATP
-//#define OCTOFLATX
-//#define FLYING_WING
-//#define VTAIL4
-//#define AIRPLANE     // Howto setup =>>>http://fotoflygarn.blogspot.com/2012/03/how-to-setup-multiwii-airplane-same.html
-
-//*******************************************************
-// Heli is  beta test ......!
-// Howto setup =>>> http://fotoflygarn.blogspot.se/2012/04/multiwii-helicopter.html
-//*******************************************************
-//#define HELI_120_CCPM	 // PatrikE Experimental 
-//#define HELI_90_DEG	 // PatrikE Experimental 
-//*******************************************************
-
-/********************************    YAW_DIRECTION    *********************************/
-#define YAW_DIRECTION 1 // if you want to reverse the yaw correction direction
+/* YAW_DIRECTION
+ *
+ * if you want to reverse the yaw correction direction*/
 //#define YAW_DIRECTION -1
-
-
+#define YAW_DIRECTION 1
 
 
 /**************************************************************************************/
 /***************               advanced users settings             ********************/
 /**************************************************************************************/
-
 
 
  
@@ -133,40 +113,6 @@
 //#define SRF23
 
 
-
-/**************************************************************************************/
-/***************                     Gyro filters                  ********************/
-/**************************************************************************************/
-
-/*********************    Lowpass filter for some gyros    ****************************/
-
-/* ITG3200 & ITG3205 Low pass filter setting. In case you cannot eliminate all vibrations to the Gyro, you can try
-   to decrease the LPF frequency, only one step per try. As soon as twitching gone, stick with that setting.
-   It will not help on feedback wobbles, so change only when copter is randomly twiching and all dampening and
-   balancing options ran out. Uncomment only one option!
-   IMPORTANT! Change low pass filter setting changes PID behaviour, so retune your PID's after changing LPF.*/
-//#define ITG3200_LPF_256HZ     // This is the default setting, no need to uncomment, just for reference
-//#define ITG3200_LPF_188HZ
-//#define ITG3200_LPF_98HZ
-//#define ITG3200_LPF_42HZ
-//#define ITG3200_LPF_20HZ
-//#define ITG3200_LPF_10HZ      // Use this only in extreme cases, rather change motors and/or props
-
-/* MPU6050 Low pass filter setting. In case you cannot eliminate all vibrations to the Gyro, you can try
-   to decrease the LPF frequency, only one step per try. As soon as twitching gone, stick with that setting.
-   It will not help on feedback wobbles, so change only when copter is randomly twiching and all dampening and
-   balancing options ran out. Uncomment only one option!
-   IMPORTANT! Change low pass filter setting changes PID behaviour, so retune your PID's after changing LPF.*/
-//#define MPU6050_LPF_256HZ     // This is the default setting, no need to uncomment, just for reference
-//#define MPU6050_LPF_188HZ
-//#define MPU6050_LPF_98HZ
-//#define MPU6050_LPF_42HZ
-//#define MPU6050_LPF_20HZ
-//#define MPU6050_LPF_10HZ      
-//#define MPU6050_LPF_5HZ       // Use this only in extreme cases, rather change motors and/or props
-
-
-
 /*****************************    Gyro smoothing    **********************************/
 /* GYRO_SMOOTHING. In case you cannot reduce vibrations _and_ _after_ you have tried the low pass filter options, you
    may try this gyro smoothing via averaging. Not suitable for multicopters!
@@ -200,8 +146,6 @@
 #define FAILSAVE_THR0TTLE  (MINTHROTTLE + 200)    // Throttle level used for landing - may be relative to MINTHROTTLE - as in this case
 
 
-
-
 /**************************************************************************************/
 /***************             Special Throttle settings             ********************/
 /**************************************************************************************/
@@ -222,7 +166,6 @@
 /* introduce a deadband around the stick center
    Must be greater than zero, comment if you dont want a deadband on roll, pitch and yaw */
 //#define DEADBAND 6
-
 
 
 /**************************************************************************************/
@@ -288,9 +231,6 @@
 #define FLAP_EP      { 1500, 1650 } // Endpooints for flaps on a 2 way switch else set {1020,2000} and program in radio.
 #define FLAP_INVERT    { 1, -1 }    // Change direction om flaps { Wing1, Wing2 }
 
-//***********************************************************************************************//
-//*************************** !!!!  Common for Heli & Airplane  !!!! ****************************//
-//***********************************************************************************************//
 
 
 //***********************************************************************************************//
@@ -312,6 +252,7 @@
 //*************************************************************************************************// 
 
 
+//TODO use runtime cfg for log and debug
 /********************************************************************/
 /****           diagnostics                                      ****/
 /********************************************************************/
@@ -326,11 +267,4 @@
 /* will add extra code that may slow down the main loop or make copter non-flyable */
 //#define DEBUG
 
-
-//****** end of advanced users settings ***********************************
-/* ===================================================================== */
-
-//if you want to change to orientation of individual sensor
-//#define ACC_ORIENTATION(X, Y, Z)  {accADC[ROLL]  =  Y; accADC[PITCH]  = -X; accADC[YAW]  = Z;}
-//#define GYRO_ORIENTATION(X, Y, Z) {gyroADC[ROLL] = -Y; gyroADC[PITCH] =  X; gyroADC[YAW] = Z;}
-//#define MAG_ORIENTATION(X, Y, Z)  {magADC[ROLL]  = X; magADC[PITCH]  = Y; magADC[YAW]  = Z;}
+#endif

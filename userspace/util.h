@@ -10,13 +10,14 @@
 
 #ifndef MWI_UTIL_H
 #define MWI_UTIL_H
+#include <stdint.h>
 
-#define VERBOSE_DEBUG true
+//#define VERBOSE_DEBUG true
 
 
 #if (defined(VERBOSE_DEBUG))
 	#include <stdio.h>
-	#define DEBUG(X) printf(X);printf(" ");printf("time =%li\n",micros()-previousTime);
+	#define DEBUG(X) printf(X);printf(" ");printf("time = %u\n",(uint32_t)(micros()-previousTime));
 #else
 	#define DEBUG(X)
 #endif
@@ -31,11 +32,14 @@
 #include <unistd.h>
 #define delay(t) usleep(1000*t)
 
-long int micros(void);
+uint64_t micros(void);
 
-void setup(void);
+int8_t setup(void);
 void loop(void);
 
 long map(long x, long in_min, long in_max, long out_min, long out_max);
+
+
+#define FAILURE_IMU_INIT -10
 
 #endif

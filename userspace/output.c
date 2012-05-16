@@ -29,7 +29,7 @@ extern int16_t axisPID[3];
 extern int16_t rcCommand[4];
 extern int16_t angle[2];
 extern uint8_t armed;
-extern uint8_t mixerConfiguration;
+//extern uint8_t cfg.mixerConfiguration;
 extern uint8_t passThruMode;
 // Common controlls for Helicopters
 int16_t heliRoll,heliNick;
@@ -48,10 +48,10 @@ void output_servo_write() {
         									return;
 
 	// TODO SEND OUTPUT->  servo[i];
-	if (mixerConfiguration == MULTITYPE_TRI || mixerConfiguration == MULTITYPE_BI) {
+	if (cfg.mixerConfiguration == MULTITYPE_TRI || cfg.mixerConfiguration == MULTITYPE_BI) {
 		/* One servo on Motor #4 */
 		//pwmWrite(4, servo[4]);
-		if (mixerConfiguration == MULTITYPE_BI){
+		if (cfg.mixerConfiguration == MULTITYPE_BI){
 			//  pwmWrite(5, servo[5]);
 			;}
 	} else {
@@ -66,16 +66,19 @@ void output_servo_write() {
  */
 void output_motor_write() { // [1000;2000] => [125;250]
 	DEBUG("output_motor_write")
-									for (uint8_t i =0;i<NUMBER_MOTOR;i++){
+		printf("MOTOR : ");
+									for (uint8_t i =0;i<numberMotor;i++){
 										// TODO SEND OUTPUT-> motor[i];
+										printf(" %04i,",motor[i]);
 									}
+	printf("\n");
 }
 
 /*
  * Send the <mc> value to all Motors
  */
 void output_motor_write_all(int16_t mc) {   // Sends commands to all motors
-	for (uint8_t i =0;i<NUMBER_MOTOR;i++)
+	for (uint8_t i =0;i<numberMotor;i++)
 		motor[i]=mc;
 	output_motor_write();
 }
@@ -90,14 +93,14 @@ void output_init_servo() {
  */
 void output_init() {
 
-	if (mixerConfiguration == MULTITYPE_BI || mixerConfiguration == MULTITYPE_TRI || mixerConfiguration == MULTITYPE_GIMBAL || mixerConfiguration == MULTITYPE_FLYING_WING)
+	if (cfg.mixerConfiguration == MULTITYPE_BI || cfg.mixerConfiguration == MULTITYPE_TRI || cfg.mixerConfiguration == MULTITYPE_GIMBAL || cfg.mixerConfiguration == MULTITYPE_FLYING_WING)
 		useServo = 1;
 
 #if defined(SERVO_TILT) || defined(CAMTRIG)
 	useServo = 1;
 #endif
 
-	switch (mixerConfiguration) {
+	switch (cfg.mixerConfiguration) {
 	case MULTITYPE_GIMBAL:
 		numberMotor = 0;
 		break;
@@ -219,7 +222,7 @@ void output_mix_cmd() {
 		axisPID[YAW] = constrain(axisPID[YAW], -100 - abs(rcCommand[YAW]), +100 + abs(rcCommand[YAW]));
 	}
 
-	switch (mixerConfiguration) {
+	switch (cfg.mixerConfiguration) {
 	case MULTITYPE_BI:
 		motor[0] = PIDMIX(+1, 0, 0);        //LEFT
 		motor[1] = PIDMIX(-1, 0, 0);        //RIGHT
@@ -467,10 +470,10 @@ void output_mix_cmd() {
 
 	/****************                Filter the Motors values                ******************/
 	maxMotor=motor[0];
-	for(int i=1;i< NUMBER_MOTOR;i++)
+	for(int i=1;i< numberMotor;i++)
 		if (motor[i]>maxMotor) maxMotor=motor[i];
 
-	for (int i = 0; i < NUMBER_MOTOR; i++) {
+	for (int i = 0; i < numberMotor; i++) {
 		if (maxMotor > MAXTHROTTLE) // this is a way to still have good gyro corrections if at least one motor reaches its max.
 			motor[i] -= maxMotor - MAXTHROTTLE;
 		motor[i] = constrain(motor[i], MINTHROTTLE, MAXTHROTTLE);

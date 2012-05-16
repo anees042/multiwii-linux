@@ -1,5 +1,7 @@
-#include "config.h"
+#ifndef MWI_DEF_H
+#define MWI_DEF_H
 
+#include "config.h"
 
 
 typedef enum MultiType
@@ -17,8 +19,8 @@ typedef enum MultiType
     MULTITYPE_OCTOX8 = 11,
     MULTITYPE_OCTOFLATP = 12,
     MULTITYPE_OCTOFLATX = 13,
-    MULTITYPE_AIRPLANE = 14,
-    MULTITYPE_HELI_120_CCPM = 15,
+    MULTITYPE_AIRPLANE = 14, // Howto airplan -> http://fotoflygarn.blogspot.com/2012/03/how-to-setup-multiwii-airplane-same.html
+    MULTITYPE_HELI_120_CCPM = 15,  //Howto heli -> http://fotoflygarn.blogspot.se/2012/04/multiwii-helicopter.html
     MULTITYPE_HELI_90_DEG = 16,
     MULTITYPE_VTAIL4 = 17,
 
@@ -98,3 +100,4 @@ typedef enum MultiType
 
 
 
+#endif

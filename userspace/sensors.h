@@ -15,6 +15,7 @@ void sensors_gyro_read(void);
 void sensors_acc_read(void);
 void sensors_mag_read(void);
 void sensors_baro_read(void);
-void sensors_init(void);
+int8_t sensors_init(void);
+
 
 #endif

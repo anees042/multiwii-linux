@@ -83,7 +83,7 @@ typedef struct config_t {
     uint8_t MAG;
     uint8_t SONAR;
 
-    uint8_t motor_disarmed_value;
+    uint16_t motor_disarmed_value;
 
     uint8_t P8[8];
     uint8_t I8[8];
@@ -116,7 +116,8 @@ typedef struct config_t {
     int8_t gimbal_gain_roll;                // Amount of servo gain per angle of inclination for roll (can be negative to invert movement)
 
 
-
+    uint8_t thrMid8 ;
+    uint8_t thrExpo8 ;
 
 } config_t;
 //
@@ -133,8 +134,8 @@ extern int16_t rcData[8];
 
 //  mw.c
 extern int16_t annex650_overrun_count;
-extern long currentTime;
-extern long previousTime;
+extern uint64_t currentTime;
+extern uint64_t previousTime;
 
 // IMU/Gyro/Acc
 extern int8_t smallAngle25;

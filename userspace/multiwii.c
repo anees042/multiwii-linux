@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <math.h>
 
-uint8_t mixerConfiguration;
+//uint8_t mixerConfiguration;
 uint8_t armed = 0;
 int16_t axisPID[3];
 int16_t heading;
@@ -32,8 +32,8 @@ int16_t heading;
 int16_t rcData[8]; // interval [1000;2000]
 int16_t rcCommand[4]; // interval [1000;2000] for THROTTLE and [-500;+500] for ROLL/PITCH/YAW
 
-long currentTime = 0;
-long previousTime = 0;
+uint64_t currentTime = 0;
+uint64_t previousTime = 0;
 
 static uint16_t cycleTime = 0; // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
 uint16_t calibratingA = 0; // the calibration is done in the main loop. Calibrating decreases at each cycle down to 0, then we enter in a normal mode.
@@ -80,8 +80,8 @@ static uint8_t rcRate8;
 static uint8_t rcExpo8;
 static uint8_t thrMid8;
 static uint8_t thrExpo8;
-static int16_t lookupPitchRollRC[6]; // lookup table for expo & RC rate PITCH+ROLL
-static int16_t lookupThrottleRC[11]; // lookup table for expo & mid THROTTLE
+ int16_t lookupPitchRollRC[6]; // lookup table for expo & RC rate PITCH+ROLL
+ int16_t lookupThrottleRC[11]; // lookup table for expo & mid THROTTLE
 
 // **********************
 // EEPROM & LCD functions
@@ -195,12 +195,12 @@ void annexCode() { // this code is excetuted at each loop and won't interfere wi
 #endif
 }
 
-void setup() {
-
+int8_t setup() {
+	previousTime = micros();
 	output_init();
 	config_init();
 	rc_init();
-	previousTime = micros();
+
 
 #if defined(GIMBAL)
 	calibratingA = 400;
@@ -208,8 +208,11 @@ void setup() {
 	calibratingG = 400;
 
 	// TODO pass cfg and calibrating to imu_init
-	imu_init();
+	if (imu_init() == -1){
+		return FAILURE_IMU_INIT;
+	}
 
+	return 1;
 }
 
 // ******** Main Loop *********

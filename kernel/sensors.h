@@ -367,5 +367,40 @@
 #endif
 
 
+
+//TODO control filter with module params and /proc fs
+
+/*
+ *  Lowpass filter for some gyros
+ */
+
+/* ITG3200 & ITG3205 Low pass filter setting. In case you cannot eliminate all vibrations to the Gyro, you can try
+   to decrease the LPF frequency, only one step per try. As soon as twitching gone, stick with that setting.
+   It will not help on feedback wobbles, so change only when copter is randomly twiching and all dampening and
+   balancing options ran out. Uncomment only one option!
+   IMPORTANT! Change low pass filter setting changes PID behaviour, so retune your PID's after changing LPF.*/
+//#define ITG3200_LPF_256HZ     // This is the default setting, no need to uncomment, just for reference
+//#define ITG3200_LPF_188HZ
+//#define ITG3200_LPF_98HZ
+//#define ITG3200_LPF_42HZ
+//#define ITG3200_LPF_20HZ
+//#define ITG3200_LPF_10HZ      // Use this only in extreme cases, rather change motors and/or props
+
+/* MPU6050 Low pass filter setting. In case you cannot eliminate all vibrations to the Gyro, you can try
+   to decrease the LPF frequency, only one step per try. As soon as twitching gone, stick with that setting.
+   It will not help on feedback wobbles, so change only when copter is randomly twiching and all dampening and
+   balancing options ran out. Uncomment only one option!
+   IMPORTANT! Change low pass filter setting changes PID behaviour, so retune your PID's after changing LPF.*/
+//#define MPU6050_LPF_256HZ     // This is the default setting, no need to uncomment, just for reference
+//#define MPU6050_LPF_188HZ
+//#define MPU6050_LPF_98HZ
+//#define MPU6050_LPF_42HZ
+//#define MPU6050_LPF_20HZ
+//#define MPU6050_LPF_10HZ
+//#define MPU6050_LPF_5HZ       // Use this only in extreme cases, rather change motors and/or props
+
+
+
+
 //++ merge end
 #endif

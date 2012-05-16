@@ -1,103 +1,34 @@
+/*
+ *  This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version. see <http://www.gnu.org/licenses/>
+ *
+ * imu.c
+ *
+ *
+ * Simplified IMU based on "Complementary Filter"
+ * Inspired by http://starlino.com/imu_guide.html
+ *
+ * adapted by ziss_dm : http://www.multiwii.com/forum/viewtopic.php?f=8&t=198
+ *
+ * The following ideas was used in this project:
+ * 1) Rotation matrix: http://en.wikipedia.org/wiki/Rotation_matrix
+ * 2) Small-angle approximation: http://en.wikipedia.org/wiki/Small-angle_approximation
+ * 3) C. Hastings approximation for atan2()
+ * 4) Optimization tricks: http://www.hackersdelight.org/
+ *
+ * Currently Magnetometer uses separate CF which is used only
+ * for heading approximation.
+ *
+ *
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include "util.h"
 #include "multiwii.h"
 #include "sensors.h"
-
-
-int16_t gyroADC[3], accADC[3], magADC[3], accSmooth[3];
-int16_t acc_25deg = 0;
-int32_t BaroAlt;
-int32_t EstAlt;             // in cm
-int16_t BaroPID = 0;
-int32_t AltHold;
-int16_t errorAltitudeI = 0;
-uint16_t acc_1G;         // this is the 1G measured acceleration
-
-int16_t gyroData[3] = { 0, 0, 0 };
-int16_t gyroZero[3] = { 0, 0, 0 };
-int16_t angle[2] = { 0, 0 };     // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
-int8_t smallAngle25 = 1;
-
-int16_t  annex650_overrun_count = 0;
-
-void imu_init(){
-	sensors_init();
-}
-
-
-void getEstimatedAttitude(void);
-void imu_compute () {
-	uint8_t axis;
-	static int16_t gyroADCprevious[3] = {0,0,0};
-	int16_t gyroADCp[3];
-	int16_t gyroADCinter[3];
-	static uint32_t timeInterleave = 0;
-
-	//we separate the 2 situations because reading gyro values with a gyro only setup can be acchieved at a higher rate
-	//gyro+nunchuk: we must wait for a quite high delay betwwen 2 reads to get both WM+ and Nunchuk data. It works with 3ms
-	//gyro only: the delay to read 2 consecutive values can be reduced to only 0.65ms
-	{
-		if( cfg.ACC){
-			sensors_acc_read();
-			getEstimatedAttitude();
-		}
-
-		sensors_gyro_read();
-
-		for (axis = 0; axis < 3; axis++){
-			gyroADCp[axis] =  gyroADC[axis];
-		}
-		timeInterleave=micros();
-		annexCode();
-		if ((micros()-timeInterleave)>650) {
-			annex650_overrun_count++;
-		} else {
-			while((micros()-timeInterleave)<650) ; //empirical, interleaving delay between 2 consecutive reads
-		}
-
-		sensors_gyro_read();
-
-		for (axis = 0; axis < 3; axis++) {
-			gyroADCinter[axis] =  gyroADC[axis]+gyroADCp[axis];
-			// empirical, we take a weighted value of the current and the previous values
-			gyroData[axis] = (gyroADCinter[axis]+gyroADCprevious[axis])/3;
-			gyroADCprevious[axis] = gyroADCinter[axis]/2;
-			if (!cfg.ACC) accADC[axis]=0;
-		}
-	}
-
-	#if defined(GYRO_SMOOTHING)
-		static uint8_t Smoothing[3]  = GYRO_SMOOTHING; // How much to smoothen with per axis
-		static int16_t gyroSmooth[3] = {0,0,0};
-		for (axis = 0; axis < 3; axis++) {
-			gyroData[axis] = (gyroSmooth[axis]*(Smoothing[axis]-1)+gyroData[axis])/Smoothing[axis];
-			gyroSmooth[axis] = gyroData[axis];
-		}
-	#elif defined(TRI)
-		static int16_t gyroYawSmooth = 0;
-		gyroData[YAW] = (gyroYawSmooth*2+gyroData[YAW])/3;
-		gyroYawSmooth = gyroData[YAW];
-	#endif
-		DEBUG("imu_compute end");
-}
-
-// **************************************************
-// Simplified IMU based on "Complementary Filter"
-// Inspired by http://starlino.com/imu_guide.html
-//
-// adapted by ziss_dm : http://www.multiwii.com/forum/viewtopic.php?f=8&t=198
-//
-// The following ideas was used in this project:
-// 1) Rotation matrix: http://en.wikipedia.org/wiki/Rotation_matrix
-// 2) Small-angle approximation: http://en.wikipedia.org/wiki/Small-angle_approximation
-// 3) C. Hastings approximation for atan2()
-// 4) Optimization tricks: http://www.hackersdelight.org/
-//
-// Currently Magnetometer uses separate CF which is used only
-// for heading approximation.
-//
-// **************************************************
 
 //******  advanced users settings *******************
 /* Set the Low Pass Filter factor for ACC */
@@ -137,6 +68,89 @@ void imu_compute () {
 //// empirical, depends on WMP on IDG datasheet, tied of deg/ms sensibility
 //// !!!!should be adjusted to the rad/sec
 //#endif
+
+int16_t gyroADC[3], accADC[3], magADC[3], accSmooth[3];
+int16_t acc_25deg = 0;
+int32_t BaroAlt;
+int32_t EstAlt;             // in cm
+int16_t BaroPID = 0;
+int32_t AltHold;
+int16_t errorAltitudeI = 0;
+uint16_t acc_1G;         // this is the 1G measured acceleration
+
+int16_t gyroData[3] = { 0, 0, 0 };
+int16_t gyroZero[3] = { 0, 0, 0 };
+int16_t angle[2] = { 0, 0 };     // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
+int8_t smallAngle25 = 1;
+
+int16_t  annex650_overrun_count = 0;
+
+int8_t imu_init(){
+	return sensors_init();
+}
+
+
+void getEstimatedAttitude(void);
+
+void imu_compute () {
+	uint8_t axis;
+	static int16_t gyroADCprevious[3] = {0,0,0};
+	int16_t gyroADCp[3];
+	int16_t gyroADCinter[3];
+	static uint32_t timeInterleave = 0;
+
+	//TODO removed : we separate the 2 situations because reading gyro values with a gyro only setup can be acchieved at a higher rate
+	//gyro+nunchuk: we must wait for a quite high delay betwwen 2 reads to get both WM+ and Nunchuk data. It works with 3ms
+	//gyro only: the delay to read 2 consecutive values can be reduced to only 0.65ms
+	{
+		if( cfg.ACC){
+			sensors_acc_read();
+			getEstimatedAttitude();
+		}
+
+		sensors_gyro_read();
+
+		for (axis = 0; axis < 3; axis++){
+			gyroADCp[axis] =  gyroADC[axis];
+		}
+		timeInterleave=micros();
+		annexCode();
+		if ((micros()-timeInterleave)>650) {
+			annex650_overrun_count++;
+		} else {
+			while((micros()-timeInterleave)<650){ usleep(50);}; //empirical, interleaving delay between 2 consecutive reads
+		}
+
+		sensors_gyro_read();
+
+		for (axis = 0; axis < 3; axis++) {
+			gyroADCinter[axis] =  gyroADC[axis]+gyroADCp[axis];
+			// empirical, we take a weighted value of the current and the previous values
+			gyroData[axis] = (gyroADCinter[axis]+gyroADCprevious[axis])/3;
+			gyroADCprevious[axis] = gyroADCinter[axis]/2;
+			if (!cfg.ACC) accADC[axis]=0;
+		}
+	}
+
+	#if defined(GYRO_SMOOTHING)
+		static uint8_t Smoothing[3]  = GYRO_SMOOTHING; // How much to smoothen with per axis
+		static int16_t gyroSmooth[3] = {0,0,0};
+		for (axis = 0; axis < 3; axis++) {
+			gyroData[axis] = (gyroSmooth[axis]*(Smoothing[axis]-1)+gyroData[axis])/Smoothing[axis];
+			gyroSmooth[axis] = gyroData[axis];
+		}
+	#elif defined(TRI)
+		static int16_t gyroYawSmooth = 0;
+		gyroData[YAW] = (gyroYawSmooth*2+gyroData[YAW])/3;
+		gyroYawSmooth = gyroData[YAW];
+	#endif
+		DEBUG("imu_compute end");
+}
+
+
+
+
+
 // Small angle approximation
 #define ssin(val) (val)
 #define scos(val) 1.0f
