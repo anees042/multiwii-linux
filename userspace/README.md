@@ -1,8 +1,11 @@
- multiwii for linux 
+ multiwii for linux - tools
 =======
 
-The userspace tool read sensors values from the device driver and do all servos and motors mixing using simplified IMU computation
-
+The user space tool are composed by :
+ * mwi : read sensors values from the device driver and do all servos and motors mixing using simplified IMU computation
+ * rc : read remote commandes from the pilote/autopilote
+ * serial : link to ground station
+ 
 start with :
 
 	$./mwi
@@ -27,6 +30,8 @@ Ouput :
 	raw[0] =-89
 	raw[1] =111
 	raw[2] =-16
+	[...]
+	more gyro init loop
 	[...]
 	raw[0] =-88
 	raw[1] =123
