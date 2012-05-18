@@ -11,6 +11,7 @@
 #include "multiwii.h"
 #include "def.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #define SERVO_MIN 1020           // limit servo travel range must be inside [1020;2000]

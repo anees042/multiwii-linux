@@ -1,15 +1,102 @@
-/*
- *  This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version. see <http://www.gnu.org/licenses/>
- *
- * config.h
- *
- */
+#ifndef MWI_DEF_H
+#define MWI_DEF_H
 
-#ifndef MWI_CONFIG_H
-#define MWI_CONFIG_H
+#include "config.h"
+
+
+typedef enum MultiType
+{
+    MULTITYPE_TRI = 1,
+    MULTITYPE_QUADP = 2,
+    MULTITYPE_QUADX = 3,
+    MULTITYPE_BI = 4,
+    MULTITYPE_GIMBAL = 5,
+    MULTITYPE_Y6 = 6,
+    MULTITYPE_HEX6 = 7,
+    MULTITYPE_FLYING_WING = 8,
+    MULTITYPE_Y4 = 9,
+    MULTITYPE_HEX6X = 10,
+    MULTITYPE_OCTOX8 = 11,
+    MULTITYPE_OCTOFLATP = 12,
+    MULTITYPE_OCTOFLATX = 13,
+    MULTITYPE_AIRPLANE = 14, // Howto airplan -> http://fotoflygarn.blogspot.com/2012/03/how-to-setup-multiwii-airplane-same.html
+    MULTITYPE_HELI_120_CCPM = 15,  //Howto heli -> http://fotoflygarn.blogspot.se/2012/04/multiwii-helicopter.html
+    MULTITYPE_HELI_90_DEG = 16,
+    MULTITYPE_VTAIL4 = 17,
+
+} MultiType;
+
+
+// TODO merge
+
+/**************************************************************************************/
+/***************          Some unsorted "chain" defines            ********************/
+/**************************************************************************************/
+
+
+
+#if defined(HELI_120_CCPM) || defined(HELI_90_DEG)
+  #define HELICOPTER
+#endif
+
+
+
+#if defined(BI) || defined(TRI) || defined(SERVO_TILT) || defined(GIMBAL) || defined(FLYING_WING) || defined(AIRPLANE) || defined(CAMTRIG) || defined(HELICOPTER) || defined(SERVO_MIX_TILT)
+  #define SERVO
+#endif
+
+#if defined(GIMBAL)
+  #define NUMBER_MOTOR     0
+  #define PRI_SERVO_FROM   1 // use servo from 1 to 2
+  #define PRI_SERVO_TO     2
+#elif defined(FLYING_WING)
+  #define NUMBER_MOTOR     1
+  #define PRI_SERVO_FROM   1 // use servo from 1 to 2
+  #define PRI_SERVO_TO     2
+#elif defined(AIRPLANE)
+  #define NUMBER_MOTOR     0
+  #define PRI_SERVO_FROM   4 // use servo from 4 to 8
+  #define PRI_SERVO_TO     8
+#elif defined(BI)
+  #define NUMBER_MOTOR     2
+  #define PRI_SERVO_FROM   5 // use servo from 5 to 6
+  #define PRI_SERVO_TO     6
+#elif defined(TRI)
+  #define NUMBER_MOTOR     3
+  #define PRI_SERVO_FROM   6 // use only servo 6
+  #define PRI_SERVO_TO     6
+#elif defined(QUADP) || defined(QUADX) || defined(Y4)|| defined(VTAIL4)
+  #define NUMBER_MOTOR     4
+#elif defined(Y6) || defined(HEX6) || defined(HEX6X)
+  #define NUMBER_MOTOR     6
+#elif defined(OCTOX8) || defined(OCTOFLATP) || defined(OCTOFLATX)
+  #define NUMBER_MOTOR     8
+#elif defined(HELICOPTER)
+  #define NUMBER_MOTOR     0
+  #define PRI_SERVO_FROM   4 // use servo from 4 to 8
+  #define PRI_SERVO_TO     8
+#endif
+
+
+#if (defined(SERVO_TILT)|| defined(SERVO_MIX_TILT))&& defined(CAMTRIG)
+  #define SEC_SERVO_FROM   1 // use servo from 1 to 3
+  #define SEC_SERVO_TO     3
+#else
+  #if defined(SERVO_TILT)|| defined(SERVO_MIX_TILT)
+    // if A0 and A1 is taken by motors, we can use A2 and 12 for Servo tilt
+    #if defined(A0_A1_PIN_HEX) && (NUMBER_MOTOR == 6) && defined(PROMINI)
+      #define SEC_SERVO_FROM   3 // use servo from 3 to 4
+      #define SEC_SERVO_TO     4
+    #else
+      #define SEC_SERVO_FROM   1 // use servo from 1 to 2
+      #define SEC_SERVO_TO     2
+    #endif
+  #endif
+  #if defined(CAMTRIG)
+    #define SEC_SERVO_FROM   3 // use servo 3
+    #define SEC_SERVO_TO     3
+  #endif
+#endif
 
 
 
@@ -20,7 +107,7 @@
 //#define MINTHROTTLE 1300 // for Turnigy Plush ESCs 10A
 //#define MINTHROTTLE 1120 // for Super Simple ESCs 10A
 //#define MINTHROTTLE 1220
-#define MINTHROTTLE 1150 
+#define MINTHROTTLE 1150
 
 
 /* YAW_DIRECTION
@@ -35,7 +122,7 @@
 /**************************************************************************************/
 
 
- 
+
 /**************************************************************************************/
 /*****************          boards and sensor definitions            ******************/
 /**************************************************************************************/
@@ -135,8 +222,8 @@
 /*
    Failsafe check pulse on THROTTLE channel. If the pulse is OFF (on only THROTTLE or on all channels) the failsafe procedure is initiated.
    After FAILSAVE_DELAY time of pulse absence, the level mode is on (if ACC or nunchuk is avaliable), PITCH, ROLL and YAW is centered
-   and THROTTLE is set to FAILSAVE_THR0TTLE value. You must set this value to descending about 1m/s or so for best results. 
-   This value is depended from your configuration, AUW and some other params. 
+   and THROTTLE is set to FAILSAVE_THR0TTLE value. You must set this value to descending about 1m/s or so for best results.
+   This value is depended from your configuration, AUW and some other params.
    Next, afrer FAILSAVE_OFF_DELAY the copter is disarmed, and motors is stopped.
    If RC pulse coming back before reached FAILSAVE_OFF_DELAY time, after the small quard time the RC control is returned to normal.
    If you use serial sum PPM, the sum converter must completly turn off the PPM SUM pusles for this FailSafe functionality.*/
@@ -206,7 +293,7 @@
 
 /* Flying Wing: you can change change servo orientation and servo min/max values here */
 /* valid for all flight modes, even passThrough mode */
-/* need to setup servo directions here; no need to swap servos amongst channels at rx */ 
+/* need to setup servo directions here; no need to swap servos amongst channels at rx */
 #define PITCH_DIRECTION_L 1 // left servo - pitch orientation
 #define PITCH_DIRECTION_R -1  // right servo - pitch orientation (opposite sign to PITCH_DIRECTION_L, if servos are mounted in mirrored orientation)
 #define ROLL_DIRECTION_L 1 // left servo - roll orientation
@@ -223,10 +310,10 @@
 //***********************************************************************************************//
 // Howto setup =>>> http://fotoflygarn.blogspot.com/2012/03/how-to-setup-multiwii-airplane-same.html
 
-#define SERVO_OFFSET     {  0,   0,   0,  0,   0,   0,  0,   0 } // Adjust Servo MID Offset & Swash angles 
-#define SERVO_RATES      {100, 100, 100, 100, 100, 100, 100, 100} // Rates in 0-100% 
-#define SERVO_DIRECTION  { -1,   1,   1,   -1,  1,   1,   1,   1 } // Invert servos by setting -1 
- 
+#define SERVO_OFFSET     {  0,   0,   0,  0,   0,   0,  0,   0 } // Adjust Servo MID Offset & Swash angles
+#define SERVO_RATES      {100, 100, 100, 100, 100, 100, 100, 100} // Rates in 0-100%
+#define SERVO_DIRECTION  { -1,   1,   1,   -1,  1,   1,   1,   1 } // Invert servos by setting -1
+
 #define FLAP_CHANNEL     AUX4       // Define the Channel to controll Flaps with.If used.
 #define FLAP_EP      { 1500, 1650 } // Endpooints for flaps on a 2 way switch else set {1020,2000} and program in radio.
 #define FLAP_INVERT    { 1, -1 }    // Change direction om flaps { Wing1, Wing2 }
@@ -237,7 +324,7 @@
 //****************************** !!!!  Hellicopter Settings  !!!! *******************************//
 //***********************************************************************************************//
 // Channel to controll CollectivePitch
-#define COLLECTIVE_PITCH      THROTTLE   
+#define COLLECTIVE_PITCH      THROTTLE
 // Set Maximum available movement for the servos. Depending on modell.
 #define SERVO_ENDPOINT_HIGH {2000,2000,2000,2000,2000,2000,2000,2000};
 #define SERVO_ENDPOINT_LOW  {1020,1020,1020,1020,1020,1020,1020,1020};
@@ -247,9 +334,9 @@
 #define YAW_CENTER             1500      // Use servo[5] SERVO_ENDPOINT_HIGH/LOW for the endpoits.
 #define YAWMOTOR                0       // If a motor is use as YAW Set to 1 else set to 0.
 
-// Limit Maximum controll for Roll & Nick  in 0-100%  
+// Limit Maximum controll for Roll & Nick  in 0-100%
 #define CONTROLL_RANGE   { 100, 100 }      //  { ROLL,PITCH }
-//*************************************************************************************************// 
+//*************************************************************************************************//
 
 
 //TODO use runtime cfg for log and debug
@@ -266,5 +353,6 @@
 /* not needed and not recommended for normal operation */
 /* will add extra code that may slow down the main loop or make copter non-flyable */
 //#define DEBUG
+
 
 #endif

@@ -93,7 +93,16 @@ void config_init(void)
 		cfg.thrMid8 =  50;
 		cfg.thrExpo8 = 0;
 
+		for (int var = 0; var < 3; var++) {
+			cfg.accZero[var]= 0;
+			cfg.magZero[var]= 0;
+			if(var<2)
+			cfg.accTrim[var]= 0;
+		}
+
+
 		config_save();
+
 
 	}else{
 		//TODO load config from file

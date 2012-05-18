@@ -76,7 +76,6 @@ int32_t EstAlt;             // in cm
 int16_t BaroPID = 0;
 int32_t AltHold;
 int16_t errorAltitudeI = 0;
-uint16_t acc_1G;         // this is the 1G measured acceleration
 
 int16_t gyroData[3] = { 0, 0, 0 };
 int16_t gyroZero[3] = { 0, 0, 0 };

@@ -53,8 +53,9 @@ int mi2c_i2c_write_reg(unsigned int device_id, unsigned char reg,
 	i = mi2c_i2c_write(device_id, cmd, 1);
 	cmd[0] = val;
 	i += mi2c_i2c_write(device_id, cmd, 1);
-	if (i !=2 )
-				dev_err(&(mi2c_i2c_client[device_id]->dev), "I2C WRITE error\n");
+	if (i !=2 ){
+		dev_err(&(mi2c_i2c_client[device_id]->dev), "I2C WRITE error\n");
+	}
 	return i == 2;
 }
 
@@ -93,15 +94,13 @@ int mi2c_i2c_read_regs(unsigned int device_id,int reg,int count, int8_t *data)
 
 }
 
-static int __init
-mi2c_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id) {
+static int __init mi2c_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id) {
 	printk(KERN_INFO "%s driver registered for device at address 0x%02x\n",
 			client->name, client->addr);
 	return 0;
 }
 
-static int __exit
-mi2c_i2c_remove(struct i2c_client *client) {
+static int __exit mi2c_i2c_remove(struct i2c_client *client) {
 	printk(KERN_INFO "removing %s driver for device at address 0x%02x\n",
 			client->name, client->addr);
 
@@ -111,8 +110,9 @@ mi2c_i2c_remove(struct i2c_client *client) {
 
 /* i2 devices used by the driver   */
 static const struct i2c_device_id mi2c_id[] = {
+//		{ARDUINO_NAME, 0 },
 		{ITG3200_NAME, 0 },
-		{ARDUINO_NAME, 0 },
+		{BMA180_NAME,0 },
 		{ }, };
 
 MODULE_DEVICE_TABLE( i2c, mi2c_id);
@@ -128,10 +128,12 @@ static struct i2c_driver mi2c_i2c_driver __refdata = {
 };
 
 
+
+
 // init i2c devices
 int __init mi2c_init_i2c(int numdevices, struct i2c_board_info * board_info )
 {
-	int i, ret;
+	int i,ret;
 	struct i2c_adapter *adapter;
 
 
@@ -143,29 +145,30 @@ int __init mi2c_init_i2c(int numdevices, struct i2c_board_info * board_info )
 		printk(KERN_ALERT "Error registering i2c driver\n");
 		return ret;
 	}
+	i=0;
 
 
-	/* get bus */
-	adapter = i2c_get_adapter(I2C_BUS_2);
+		/* get adapter */
+			adapter = i2c_get_adapter(I2C_BUS_2);
 
-	if (!adapter) {
-		printk(KERN_ALERT "i2c_get_adapter(%d) failed\n", I2C_BUS_2);
-		return -1;
-	}
+			if (!adapter) {
+				printk(KERN_ALERT "i2c_get_adapter(%d) failed\n", I2C_BUS_2);
+				return -1;
+			}
 
-	/* add our devices */
-	for (i = 0; i < num_devices; i++) {
-		mi2c_i2c_client[i] = i2c_new_device(adapter,&board_info[i]);
+			/* add our devices */
+			for (i = 0; i < num_devices; i++) {
+				mi2c_i2c_client[i] = i2c_new_device(adapter,&board_info[i]);
 
-		if (!mi2c_i2c_client[i]) {
-			printk(KERN_ALERT "i2c_new_device failed\n");
-			break;
-		} else {
+				if (!mi2c_i2c_client[i]) {
+					printk(KERN_ALERT "i2c_new_device failed\n");
+					break;
+				} else {
 
-		}
-	}
+				}
+			}
 
-	i2c_put_adapter(adapter);
+			i2c_put_adapter(adapter);
 
 	return i == num_devices ? 0 : -1;
 }

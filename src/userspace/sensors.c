@@ -8,69 +8,68 @@
  *
  */
 
-
-
-
+#include "../kernel/mi2c-lib.h"
 #include "multiwii.h"
 #include "util.h"
 //      #include <sys/types.h>
-//       #include <sys/stat.h>
+       #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 
-
 //typedef enum SensorsType {
-#define	DEVICE_GYRO 	"/dev/mi2c"
-#define DEVICE_ACC  	""
-#define DEVICE_MAG  	""
-#define DEVICE_BARO  	""
-#define DEVICE_SONAR  	""
+#define	DEVICE_FD 	"/dev/mi2c"
+
 //
 //} SensorsType;
 
 // TODO remove after testing
 extern int16_t rcData[8];
-extern uint8_t armed ;
+extern uint8_t armed;
 
 extern uint8_t calibratingM;
 extern uint16_t calibratingA;
 extern uint16_t calibratingG;
 
-static uint32_t fd_gyro,fd_acc,fd_mag;
+static uint32_t fd_device;
 
-void sensor_read_rawADC(uint32_t fd, int16_t * raw) {
+int sensor_read_rawADC(uint8_t sensor, int16_t * raw) {
 
 	uint8_t data[6] = { 0 };
 
-	if (fd<=0){return;}
+	if (fd_device <= 0) {
+		return -1;
+	}
 
-
-	int k = read(fd, data, 6);
-
+	int k = write(fd_device, &sensor, 1);
+	if ((k != 1)) {
+		printf("error sending sensor req to device : %s (%d)\n",
+				strerror(errno), errno);
+		return -1;
+	}
+	k = read(fd_device, data, 6);
 
 	if ((k != 6)) {
 		printf("k = %i", k);
 		printf("error: %s (%d)\n", strerror(errno), errno);
 	} else {
 
-		raw[0] = data[1]& 0xff;
-		raw[0] = raw[0]+(data[0] << 8);
-		raw[0] = raw[0] /4;
-		raw[1] = data[3]& 0xff;
-		raw[1] = raw[1] +(data[2] << 8);
-		raw[1] = raw[1] /4;
-		raw[2] = data[5]& 0xff;
-		raw[2] = raw[2]+(data[4] << 8);
-		raw[2] = raw[2] /4;
-
+		raw[0] = data[1] & 0xff;
+		raw[0] = raw[0] + (data[0] << 8);
+		raw[0] = raw[0] / 4;
+		raw[1] = data[3] & 0xff;
+		raw[1] = raw[1] + (data[2] << 8);
+		raw[1] = raw[1] / 4;
+		raw[2] = data[5] & 0xff;
+		raw[2] = raw[2] + (data[4] << 8);
+		raw[2] = raw[2] / 4;
 
 	}
 
-	printf("raw[0] =%i\n",raw[0] );
-	printf("raw[1] =%i\n",raw[1] );
-	printf("raw[2] =%i\n",raw[2] );
-
+//	printf("raw[0] =%i\n", raw[0]);
+//	printf("raw[1] =%i\n", raw[1]);
+//	printf("raw[2] =%i\n", raw[2]);
+return 1;
 }
 
 // ****************
@@ -108,12 +107,11 @@ void GYRO_Common() {
 			}
 		}
 		calibratingG--;
-	}else{
+	} else {
 		// TODO remove after testing - for armed and throttle
-		armed=1;
-		rcData[THROTTLE]=1500;
-		printf("rcData[THROTTLE] = %i\n",rcData[THROTTLE]);
-
+		armed = 1;
+		rcData[THROTTLE] = 1500;
+		printf("rcData[THROTTLE] = %i\n", rcData[THROTTLE]);
 
 	}
 
@@ -138,8 +136,12 @@ void GYRO_Common() {
 	}
 
 	void sensors_gyro_read() {
-		sensor_read_rawADC(fd_gyro, gyroADC);
-		GYRO_Common();
+		if (sensor_read_rawADC(SENSOR_GYRO, gyroADC) == -1) {
+			GYRO_Common();
+		} else {
+
+		}
+		DEBUG("sensors_gyro_read done")
 	}
 
 	// ****************
@@ -169,7 +171,7 @@ void GYRO_Common() {
 				cfg.accTrim[ROLL] = 0;
 				cfg.accTrim[PITCH] = 0;
 				// TODO save only changed parameter
-				config_save(); // write accZero in EEPROM
+				//config_save(); // write accZero in EEPROM
 			}
 			calibratingA--;
 		}
@@ -179,10 +181,14 @@ void GYRO_Common() {
 		accADC[PITCH] -= cfg.accZero[PITCH];
 		accADC[YAW] -= cfg.accZero[YAW];
 	}
+
 	void sensors_acc_read() {
 
-		sensor_read_rawADC(fd_acc, accADC);
-		ACC_Common();
+		if (sensor_read_rawADC(SENSOR_ACC, accADC) == -1) {
+
+		} else {
+			ACC_Common();
+		}
 		DEBUG("sensors_acc_read done")
 	}
 
@@ -190,11 +196,13 @@ void GYRO_Common() {
 		DEBUG("sensors_baro_read")
 	}
 
-#define MAG_UPDATE_INTERVAL 100000
+
+	#define MAG_UPDATE_INTERVAL 100000
+
 	void sensors_mag_read() {
 		DEBUG("sensors_mag_read")
 
-			static uint32_t t, tCal = 0;
+		static uint32_t t, tCal = 0;
 		static int16_t magZeroTempMin[3];
 		static int16_t magZeroTempMax[3];
 		uint8_t axis;
@@ -203,9 +211,8 @@ void GYRO_Common() {
 			return; //each read is spaced by 100ms
 		t = currentTime + MAG_UPDATE_INTERVAL;
 
-		//Device_Mag_getADC();
-		//TODO magADC[] -> input
-		sensor_read_rawADC(fd_mag, magADC);
+
+		sensor_read_rawADC(SENSOR_MAG, magADC);
 
 		if (calibratingM == 1) {
 			tCal = t;
@@ -235,7 +242,8 @@ void GYRO_Common() {
 				for (axis = 0; axis < 3; axis++)
 					cfg.magZero[axis] =
 							(magZeroTempMin[axis] + magZeroTempMax[axis]) / 2;
-				config_save();
+				// TODO save only changed parameter
+				//config_save();
 			}
 		}
 	}
@@ -247,26 +255,15 @@ void GYRO_Common() {
 
 	int8_t sensors_gyro_init() {
 		DEBUG("sensors_gyro_init")
-
-
-		char filename[40];
-
-
-		sprintf(filename, DEVICE_GYRO);
-		if ((fd_gyro = open(filename, O_RDONLY)) < 0) {
-			printf("Failed to open the sensors %s ",filename);
-			printf("error: %s (%d)\n", strerror(errno), errno);
-			return (-1);
-		}
-		return 1;
+			return 1;
 	}
 	int8_t sensors_baro_init() {
 		DEBUG("sensors_baro_init")
-				return 1;
+			return 1;
 	}
 	int8_t sensors_mag_init() {
 		DEBUG("sensors_mag_init")
-				return 1;
+			return 1;
 	}
 
 	int8_t sensors_acc_init() {
@@ -281,8 +278,21 @@ void GYRO_Common() {
 	}
 
 	int8_t sensors_init() {
+
+		DEBUG("sensors_gyro_init")
+
+			char filename[40];
+
+		sprintf(filename, DEVICE_FD);
+		if ((fd_device = open(filename, O_RDONLY)) < 0) {
+			printf("Failed to open the sensors %s ", filename);
+			printf("error: %s (%d)\n", strerror(errno), errno);
+			return (-1);
+		}
+
 		if (cfg.GYRO)
-			if (sensors_gyro_init()==-1)return -1;
+			if (sensors_gyro_init() == -1)
+				return -1;
 		if (cfg.BARO)
 			sensors_baro_init();
 		if (cfg.MAG)

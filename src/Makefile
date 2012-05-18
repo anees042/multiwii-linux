@@ -19,3 +19,5 @@ all:
 clean:	
 	set -e; for dir in $(SRCDIRS); do $(MAKE) clean -C $$dir ; done
 	
+install:	
+	set -e; for dir in $(SRCDIRS); do $(MAKE) install -C $$dir ; done

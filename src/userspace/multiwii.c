@@ -20,6 +20,7 @@
 #include "imu.h"
 #include "rc.h"
 #include "serial.h"
+#include "sensors.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
@@ -76,10 +77,7 @@ static int32_t BAROaltMax = 0; // maximum value
 
 volatile int16_t failsafeCnt = 0;
 static int16_t failsafeEvents = 0;
-static uint8_t rcRate8;
-static uint8_t rcExpo8;
-static uint8_t thrMid8;
-static uint8_t thrExpo8;
+
  int16_t lookupPitchRollRC[6]; // lookup table for expo & RC rate PITCH+ROLL
  int16_t lookupThrottleRC[11]; // lookup table for expo & mid THROTTLE
 
@@ -87,7 +85,7 @@ static uint8_t thrExpo8;
 // EEPROM & LCD functions
 // **********************
 //static uint8_t P8[8], I8[8], D8[8]; // 8 bits is much faster and the code is much shorter
-static uint8_t dynP8[3], dynI8[3], dynD8[3];
+static uint8_t dynP8[3], dynD8[3];
 static uint8_t rollPitchRate;
 static uint8_t yawRate;
 static uint8_t dynThrPID;

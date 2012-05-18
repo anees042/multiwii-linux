@@ -12,21 +12,36 @@
 #define BGSENSORS_H
 
 
-/*
- *  Arduino Motor/Servo slave
- */
-#define ARDUINO 		1
+///*
+// *  Arduino Motor/Servo slave
+// */
+#define ARDUINO 		0
 #define ARDUINO_ADDRESS	0x10
+//
 
 
 
 
 /*
- * Gyro ITG3200
+ * Acc
  */
-#define ITG3200 		0
-#define ITG3200_ADDRESS	0x69
+#define BMA180 				1
+#define BMA180_ADDRESS		0x40
+//#define BMA180_ADDRESS	0x41
 
+/*
+ * Mag hmc58xx
+ */
+#define HMC58XX 3
+#define HMC58XX_ADDRESS 0x3C
+#define HMC58XX_DATA_REGISTER 0x03
+
+/*
+ * Gyro
+ */
+#define ITG3200 			0
+#define ITG3200_ADDRESS		0x69
+//#define ITG3200_ADDRESS	0x68
 
 //ITG3200 and ITG3205 Gyro LPF setting
 #if defined(ITG3200_LPF_256HZ) || defined(ITG3200_LPF_188HZ) || defined(ITG3200_LPF_98HZ) || defined(ITG3200_LPF_42HZ) || defined(ITG3200_LPF_20HZ) || defined(ITG3200_LPF_10HZ)
@@ -355,6 +370,38 @@
 // ************************************************************************************************************
 // default board orientation and setup
 // ************************************************************************************************************
+
+
+	#if defined(ADXL345) || defined(BMA020) || defined(BMA180) || defined(NUNCHACK) || defined(MMA7455) || defined(ADCACC) || defined(LIS3LV02) || defined(LSM303DLx_ACC) || defined(MPU6050)
+	  #define ACC 1
+	#else
+	  #define ACC 0
+	#endif
+
+	#if defined(HMC5883) || defined(HMC5843) || defined(AK8975) || defined(MAG3110)
+	  #define MAG 1
+	#else
+	  #define MAG 0
+	#endif
+
+	#if defined(ITG3200) || defined(L3G4200D) || defined(MPU6050)
+	  #define GYRO 1
+	#else
+	  #define GYRO 0
+	#endif
+
+	#if defined(BMP085) || defined(MS561101BA)
+	  #define BARO 1
+	#else
+	  #define BARO 0
+	#endif
+
+
+	#if defined(SRF02) || defined(SRF08) || defined(SRF10) || defined(SRC235)
+	  #define SONAR 1
+	#else
+	  #define SONAR 0
+	#endif
 
 #if !defined(ACC_ORIENTATION)
 #define ACC_ORIENTATION(X, Y, Z)  {accADC[ROLL]  = X; accADC[PITCH]  = Y; accADC[YAW]  = Z;}

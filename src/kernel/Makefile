@@ -6,6 +6,8 @@
 # Makefile for the multiwii kernel module
 
 
+
+
 DRIVERNAME=mi2c
 
 ifneq ($(KERNELRELEASE),)
@@ -14,7 +16,8 @@ ifneq ($(KERNELRELEASE),)
 else
     PWD := $(shell pwd)
 
-default:
+
+all-kernel:
 ifeq ($(strip $(KERNELDIR)),)
 	$(error "KERNELDIR is undefined!")
 else
@@ -22,7 +25,13 @@ else
 endif
 
 
-install:
+all:
+	all-kernel
+
+
+
+
+install:all-kernel
 	cp mi2c.ko $(MOD_INSTALL_DIR)
 
 clean:

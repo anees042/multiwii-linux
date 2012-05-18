@@ -1,0 +1,13 @@
+
+export MOD_INSTALL_DIR=/lib/modules/`uname -r`/kernel
+
+export KERNELDIR=/usr/src/linux
+
+export VERBOSE_DEBUG=ts
+
+#ARM_THUMB 
+#ARM_APPENDED_DTB 
+#VFP 
+#PROC_DEVICETREE 
+
+#ARM_UNWIND

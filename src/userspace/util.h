@@ -12,7 +12,6 @@
 #define MWI_UTIL_H
 #include <stdint.h>
 
-//#define VERBOSE_DEBUG true
 
 
 #if (defined(VERBOSE_DEBUG))
