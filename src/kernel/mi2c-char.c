@@ -150,30 +150,29 @@ return 1;
  }
 
 static int bma180_init (void) {
-//	uint8_t control=0;
-//	printk(KERN_INFO "bma180_init 1");
-//	udelay(10);
-//	//default range 2G: 1G = 4096 unit.
-//	mi2c_i2c_write_reg(BMA180_ADDRESS,0x0D,(1<<4)); // register: ctrl_reg0  -- value: set bit ee_w to 1 to enable writing
-//	udelay(5);
-//	mi2c_i2c_read_reg(BMA180_ADDRESS, 0x20,&control);
-//	control = control & 0x0F;        // save tcs register
-//	control = control | (0x01 << 4); // register: bw_tcs reg: bits 4-7 to set bw -- value: set low pass filter to 20Hz
-//	mi2c_i2c_write_reg(BMA180_ADDRESS, 0x20, control);
-//	udelay(5);
-//	printk(KERN_INFO "bma180_init 2");
-//
-//	mi2c_i2c_read_reg(BMA180_ADDRESS, 0x30,&control);
-//	control = control & 0xFC;        // save tco_z register
-//	control = control | 0x00;        // set mode_config to 0
-//	mi2c_i2c_write_reg(BMA180_ADDRESS, 0x30, control);
-//	udelay(5);
-//	mi2c_i2c_read_reg(BMA180_ADDRESS, 0x35,&control);
-//	control = control & 0xF1;        // save offset_x and smp_skip register
-//	control = control | (0x05 << 1); // set range to 8G
-//	mi2c_i2c_write_reg(BMA180_ADDRESS, 0x35, control);
-//	udelay(5);
-//	printk(KERN_INFO "bma180_init 3");
+	uint8_t control[1]={0};
+	//printk(KERN_INFO "bma180_init 1");
+	udelay(10);
+	//default range 2G: 1G = 4096 unit.
+	mi2c_i2c_write_reg(BMA180,0x0D,(1<<4)); // register: ctrl_reg0  -- value: set bit ee_w to 1 to enable writing
+	udelay(5);
+	mi2c_i2c_read_reg(BMA180, 0x20,control);
+	control[0] = control[0] & 0x0F;        // save tcs register
+	control[0] = control[0] | (0x01 << 4); // register: bw_tcs reg: bits 4-7 to set bw -- value: set low pass filter to 20Hz
+	mi2c_i2c_write_reg(BMA180, 0x20, control[0]);
+	udelay(5);
+
+	mi2c_i2c_read_reg(BMA180, 0x30,control);
+	control[0] = control[0] & 0xFC;        // save tco_z register
+	control[0] = control[0] | 0x00;        // set mode_config to 0
+	mi2c_i2c_write_reg(BMA180, 0x30, control[0]);
+	udelay(5);
+	mi2c_i2c_read_reg(BMA180, 0x35,control);
+	control[0] = control[0] & 0xF1;        // save offset_x and smp_skip register
+	control[0] = control[0] | (0x05 << 1); // set range to 8G
+	mi2c_i2c_write_reg(BMA180, 0x35, control[0]);
+	udelay(5);
+
 //	// TODO acc_1G = 255;
 	return 1;
 }
@@ -181,7 +180,6 @@ static int bma180_init (void) {
 static int mi2c_read_raw(uint8_t sensor,uint8_t reg,int8_t *data) {
 
 	int result;
-
 	result = mi2c_i2c_read_regs(sensor, reg, 6, data);
 
 	if (result != 6){
@@ -288,9 +286,9 @@ static ssize_t mi2c_write(struct file *filp, const char *buffer, size_t length,l
 
 	uint8_t i;
 
-#ifdef DEBUG
-	printk(KERN_INFO "device_write(%p,%s,%d)", file, buffer, length);
-#endif
+//#ifdef DEBUG
+//	printk(KERN_INFO "device_write(%p,%s,%d)", file, buffer, length);
+//#endif
 	i =length ;
 	if (i>BUFFER_LENGH){
 		i = BUFFER_LENGH;
@@ -299,7 +297,7 @@ static ssize_t mi2c_write(struct file *filp, const char *buffer, size_t length,l
 	if ( copy_from_user(sensor_read,buffer,i) != 0 )
 	printk( "kernel->userspace copy failed!\n" );
 
-	printk(KERN_INFO "device_write , sensor_read=%s", sensor_read);
+//	printk(KERN_INFO "device_write , sensor_read=%s", sensor_read);
 	return strlen(sensor_read);
 
 }
@@ -395,6 +393,7 @@ static int __init mi2c_init(void)
 
 	itg3200_init();
 	bma180_init();
+
 	return 0;
 
 	init_fail_3:
