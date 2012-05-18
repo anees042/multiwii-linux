@@ -185,7 +185,7 @@ static int mi2c_read_raw(uint8_t sensor,uint8_t reg,int8_t *data) {
 	result = mi2c_i2c_read_regs(sensor, reg, 6, data);
 
 	if (result != 6){
-
+		printk(KERN_ALERT "faile to read 6 raw : %d\n",result);
 		return -1;
 	}
 
@@ -225,8 +225,8 @@ static ssize_t mi2c_read(struct file *filp, char __user *buff,
 	 return zero. So if *offp != 0, we know this is at least the
 	 second call.
 	 */
-	//		if (*offp > 0)
-	//			return 0;
+//			if (*offp > 0)
+//				return 0;
 	if (down_interruptible(&mi2c_dev.sem))
 		return -ERESTARTSYS;
 
@@ -262,15 +262,12 @@ static ssize_t mi2c_read(struct file *filp, char __user *buff,
 	if(read == 6) {
 
 				lenn += sprintf(mi2c_dev.user_buff + lenn,
-						"%c%c%c%c%c%c",
+						"%01c%01c%01c%01c%01c%01c",
 						data[0],data[1],data[2],data[3],data[4],data[5]);
 			}
-	lenn = strlen(mi2c_dev.user_buff);
 
-	if (lenn > count)
-		lenn = count;
 
-	if (copy_to_user(buff, mi2c_dev.user_buff, lenn)) {
+	if (copy_to_user(buff, mi2c_dev.user_buff, 6)) {
 		status = -EFAULT;
 		goto mi2c_read_done;
 	}

@@ -82,10 +82,10 @@ void config_init(void)
 
 		cfg.FAILSAFE = 1;
 		cfg.GYRO = 1;
-		cfg.ACC = 1;
-		cfg.BARO = 1;
-		cfg.MAG = 1;
-		cfg.SONAR = 1;
+		cfg.ACC = 0;
+		cfg.BARO = 0;
+		cfg.MAG = 0;
+		cfg.SONAR = 0;
 
 		cfg.flap_channel = FLAP_CHANNEL;
 		cfg.motor_disarmed_value= MINTHROTTLE;

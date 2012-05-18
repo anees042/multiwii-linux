@@ -36,7 +36,7 @@ int16_t rcCommand[4]; // interval [1000;2000] for THROTTLE and [-500;+500] for R
 uint64_t currentTime = 0;
 uint64_t previousTime = 0;
 
-static uint16_t cycleTime = 0; // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
+ uint16_t cycleTime = 0; // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
 uint16_t calibratingA = 0; // the calibration is done in the main loop. Calibrating decreases at each cycle down to 0, then we enter in a normal mode.
 uint8_t calibratingM = 0;
 uint16_t calibratingG;
@@ -203,6 +203,7 @@ int8_t setup() {
 #if defined(GIMBAL)
 	calibratingA = 400;
 #endif
+	calibratingA = 400;
 	calibratingG = 400;
 
 	// TODO pass cfg and calibrating to imu_init
@@ -248,6 +249,14 @@ void loop() {
 			}
 			failsafeCnt++;
 		}
+
+		// TODO remove after testing - for armed and throttle
+		if (calibratingG <=0){
+			armed = 1;
+			rcData[THROTTLE] = 1500;
+
+		}
+
 
 		for (i = 0; i < CHECKBOXITEMS; i++) {
 			rcOptions[i] = (((rcData[AUX1] < 1300)

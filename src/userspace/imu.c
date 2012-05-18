@@ -242,7 +242,7 @@ void getEstimatedAttitude(){
 	}
 
 	if (acc_1G == 0){
-		acc_1G = 250;
+		acc_1G = 255;
 	}
 	accMag = accMag*100/((int32_t)acc_1G*acc_1G);
 
@@ -281,6 +281,7 @@ void getEstimatedAttitude(){
 		// Attitude of the cross product vector GxM
 		heading = _atan2( EstG.V.X * EstM.V.Z - EstG.V.Z * EstM.V.X , EstG.V.Z * EstM.V.Y - EstG.V.Y * EstM.V.Z  ) / 10;
 	}
+
 }
 
 #define BARO_UPDATE_INTERVAL 25000    // 40hz update rate (20hz LPF on acc)

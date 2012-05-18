@@ -67,12 +67,12 @@ void output_servo_write() {
  */
 void output_motor_write() { // [1000;2000] => [125;250]
 	DEBUG("output_motor_write")
-		printf("MOTOR : ");
+
 									for (uint8_t i =0;i<numberMotor;i++){
 										// TODO SEND OUTPUT-> motor[i];
-										printf(" %04i,",motor[i]);
+
 									}
-	printf("\n");
+
 }
 
 /*
